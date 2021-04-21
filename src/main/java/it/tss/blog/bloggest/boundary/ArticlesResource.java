@@ -8,6 +8,7 @@ package it.tss.blog.bloggest.boundary;
 import it.tss.blog.bloggest.boundary.dto.ArticleCreate;
 import it.tss.blog.bloggest.control.ArticleStore;
 import it.tss.blog.bloggest.entity.Article;
+import java.time.LocalDateTime;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.security.PermitAll;
@@ -65,6 +66,29 @@ public class ArticlesResource {
     public List<Article> allArticles() {
         return resource.getResource(ArticleResource.class).allArticles();
     }
+    
+    
+    @PermitAll
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Article> allArticlesByTag(List<String> tags) {
+        return articleStore.searchByTag(tags);
+    }
+
+    @PermitAll
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Article> allArticlesByPeriod(LocalDateTime start, LocalDateTime finish) {
+        return articleStore.searchByPeriod(start, finish);
+    }
+
+    @PermitAll
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Article> allArticlesByTitle(String title, Boolean visible) {
+        return articleStore.searchByTitle(title, visible);
+    }        
+    
         
     @RolesAllowed({"ADMIN", "USER"})
     @Path("{articleId}")

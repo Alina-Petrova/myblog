@@ -5,11 +5,12 @@
  */
 package it.tss.blog.bloggest.boundary;
 
-
 import it.tss.blog.bloggest.boundary.dto.UserUpdate;
 import it.tss.blog.bloggest.control.ArticleStore;
+import it.tss.blog.bloggest.control.CommentStore;
 import it.tss.blog.bloggest.control.UserStore;
 import it.tss.blog.bloggest.entity.Article;
+import it.tss.blog.bloggest.entity.Comment;
 import it.tss.blog.bloggest.entity.User;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,8 +40,8 @@ public class UserResource {
     @Inject
     private ArticleStore articleStore;
 
-   /* @Inject
-    private CommentStore commentStore;*/
+    @Inject
+    private CommentStore commentStore;
 
     @Inject
     private UserStore userStore;
@@ -76,10 +77,13 @@ public class UserResource {
     public Response blockUser() {
         userStore.find(userId).orElseThrow(() -> new NotFoundException());
         userStore.block(userId);
+        List<Comment> comments = allUsersComments();
+        for(Comment c: comments)
+            c.setVisible(false);        
         return Response.status(Response.Status.ACCEPTED).build();
     }
 
-  /*  @GET
+    @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<Comment> allCommentsByArticle(Long idArticle) {
         return commentStore.searchByArticle(idArticle);
@@ -101,7 +105,7 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<Comment> allCommentsByPeriod(LocalDateTime start, LocalDateTime finish) {
         return commentStore.searchByPeriod(start, finish);
-    }*/
+    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -109,9 +113,15 @@ public class UserResource {
         return articleStore.searchByPeriod(start, finish);
     }
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Article> allArticles() {
+        return articleStore.findAll();
+    }
+
     @RolesAllowed({"ADMIN"})
     @POST
-    @Path("/articles")
+    @Path("articles")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createArticle(Article article) {
@@ -122,19 +132,18 @@ public class UserResource {
                 .build();
     }
 
-/*    @POST
+    @POST
     @Path("comments")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createComment(Comment comment, Long articleId) {
+    public Response createComment(Comment comment, Article article, Comment commentRef) {
         User user = userStore.find(userId).orElseThrow(() -> new NotFoundException());
-        Comment saved = commentStore.create(comment, articleId, userId);
-        saved.setUser(userStore.find(userId).get());
+        Comment saved = commentStore.create(comment, userId, article, commentRef);
+        //saved.setUser(userStore.find(userId).get());
         return Response.status(Response.Status.CREATED)
                 .entity(saved)
                 .build();
-    }*/
-
+    }
     public Long getUserId() {
         return userId;
     }
